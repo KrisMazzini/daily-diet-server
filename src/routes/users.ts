@@ -44,5 +44,7 @@ export async function userRoutes(app: FastifyInstance) {
       email,
       session_id: sessionId,
     })
+
+    return response.status(201).send()
   })
 }
