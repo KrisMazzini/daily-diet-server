@@ -3,12 +3,19 @@ import { FastifyInstance } from 'fastify'
 import { z } from 'zod'
 
 import { knex } from '../database'
+import { auth } from '../middlewares/auth'
 
 export async function userRoutes(app: FastifyInstance) {
   app.get('/', async () => {
     const users = await knex('users').select('*')
 
     return { users }
+  })
+
+  app.get('/me', { preHandler: [auth] }, async (request) => {
+    const { user } = request
+
+    return { user }
   })
 
   app.post('/', async (request, response) => {

@@ -79,6 +79,30 @@ describe('User routes', () => {
     expect(createSecondUserResponse.status).toBe(400)
   })
 
+  it('should be possible to get a user by its session id', async () => {
+    const createUserResponse = await request(app.server).post('/users').send({
+      name: 'John Doe',
+      email: 'johndoe@example.com',
+    })
+
+    const cookies = createUserResponse.get('Set-Cookie') ?? []
+
+    const getUserResponse = await request(app.server)
+      .get('/users/me')
+      .set('Cookie', cookies)
+      .send()
+
+    expect(getUserResponse.body.user).toEqual(
+      expect.objectContaining({
+        id: expect.any(String),
+        name: 'John Doe',
+        email: 'johndoe@example.com',
+        created_at: expect.any(String),
+        session_id: expect.any(String),
+      }),
+    )
+  })
+
   it('should be possible to list users', async () => {
     await request(app.server).post('/users').send({
       name: 'John Doe',
