@@ -16,6 +16,33 @@ export function mealRoutes(app: FastifyInstance) {
     return { meals }
   })
 
+  app.get('/:id', { preHandler: [auth] }, async (request, response) => {
+    const getMealParamsSchema = z.object({
+      id: z.string().uuid(),
+    })
+
+    const { success, data: params } = getMealParamsSchema.safeParse(
+      request.params,
+    )
+
+    if (!success) {
+      return response.status(400).send({ error: 'Invalid params.' })
+    }
+
+    const { id } = params
+
+    const userId = request.user?.id
+
+    const meal = await knex('meals')
+      .where({
+        id,
+        user_id: userId,
+      })
+      .first()
+
+    return { meal }
+  })
+
   app.post('/', { preHandler: [auth] }, async (request, response) => {
     const createMealSchema = z.object({
       name: z.string().trim().min(1),

@@ -80,4 +80,40 @@ describe('Meal routes', () => {
       }),
     ])
   })
+
+  it('should be possible to get a specific  meal', async () => {
+    const createUserResponse = await request(app.server).post('/users').send({
+      name: 'John Doe',
+      email: 'johndoe@example.com',
+    })
+
+    const cookies = createUserResponse.get('Set-Cookie') ?? []
+
+    await request(app.server).post('/meals').set('Cookie', cookies).send({
+      name: 'Lunch',
+      description: 'Rice, beans and beef',
+      partOfDiet: true,
+      date: '2024-12-01T12:00:00.000Z',
+    })
+
+    const listMealsResponse = await request(app.server)
+      .get('/meals')
+      .set('Cookie', cookies)
+
+    const mealId = listMealsResponse.body.meals[0].id
+
+    const getMealResponse = await request(app.server)
+      .get(`/meals/${mealId}`)
+      .set('Cookie', cookies)
+
+    expect(getMealResponse.body.meal).toEqual(
+      expect.objectContaining({
+        id: expect.any(String),
+        name: 'Lunch',
+        description: 'Rice, beans and beef',
+        part_of_diet: 1,
+        date: '2024-12-01T12:00:00.000Z',
+      }),
+    )
+  })
 })
