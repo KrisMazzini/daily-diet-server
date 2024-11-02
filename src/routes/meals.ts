@@ -159,6 +159,8 @@ export function mealRoutes(app: FastifyInstance) {
       .where({
         id,
       })
+
+    return reply.status(204).send()
   })
 
   app.delete('/:id', { preHandler: [auth] }, async (request, reply) => {
@@ -187,6 +189,6 @@ export function mealRoutes(app: FastifyInstance) {
       id,
     })
 
-    return reply.status(200).send()
+    return reply.status(204).send()
   })
 }
