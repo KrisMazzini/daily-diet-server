@@ -111,6 +111,56 @@ export function mealRoutes(app: FastifyInstance) {
     reply.status(201).send()
   })
 
+  app.put('/:id', { preHandler: [auth] }, async (request, reply) => {
+    const updateMealParamsSchema = z.object({
+      id: z.string().uuid(),
+    })
+
+    const { success: paramsSuccess, data: params } =
+      updateMealParamsSchema.safeParse(request.params)
+
+    if (!paramsSuccess) {
+      return reply.status(400).send({ message: 'Invalid params.' })
+    }
+
+    const { id } = params
+    const userId = request.user?.id
+
+    const meal = await knex('meals').where({ user_id: userId, id }).first()
+
+    if (!meal) {
+      return reply.status(404).send({ message: 'Could not find meal.' })
+    }
+
+    const updateMealBodySchema = z.object({
+      name: z.string().trim().min(1),
+      description: z.string().trim().min(1),
+      date: z.string().datetime(),
+      partOfDiet: z.boolean(),
+    })
+
+    const { success: bodySuccess, data: body } = updateMealBodySchema.safeParse(
+      request.body,
+    )
+
+    if (!bodySuccess) {
+      return reply.status(400).send({ message: 'Invalid body.' })
+    }
+
+    const { name, description, date, partOfDiet } = body
+
+    await knex('meals')
+      .update({
+        date,
+        description,
+        name,
+        part_of_diet: partOfDiet,
+      })
+      .where({
+        id,
+      })
+  })
+
   app.delete('/:id', { preHandler: [auth] }, async (request, reply) => {
     const deleteMealParamsSchema = z.object({
       id: z.string().uuid(),
