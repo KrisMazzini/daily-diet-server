@@ -9,9 +9,11 @@ export function mealRoutes(app: FastifyInstance) {
   app.get('/', { preHandler: [auth] }, async (request) => {
     const userId = request.user?.id
 
-    const meals = await knex('meals').where({
-      user_id: userId,
-    })
+    const meals = await knex('meals')
+      .where({
+        user_id: userId,
+      })
+      .orderBy('date', 'asc')
 
     return { meals }
   })
