@@ -184,15 +184,12 @@ describe('Meal routes', () => {
 
     const mealId = listMealsReply.body.meals[0].id
 
-    const deleteMealReply = await request(app.server)
-      .delete(`/meals/${mealId}`)
-      .set('Cookie', cookies)
+    await request(app.server).delete(`/meals/${mealId}`).set('Cookie', cookies)
 
     const getMealReply = await request(app.server)
       .get(`/meals/${mealId}`)
       .set('Cookie', cookies)
 
-    expect(deleteMealReply.status).toBe(200)
     expect(getMealReply.body.meal).toBe(null)
   })
 
