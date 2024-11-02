@@ -20,45 +20,45 @@ describe('User routes', () => {
   })
 
   it('should be possible to create a new user', async () => {
-    const createUserResponse = await request(app.server).post('/users').send({
+    const createUserReply = await request(app.server).post('/users').send({
       name: 'John Doe',
       email: 'johndoe@example.com',
     })
 
-    expect(createUserResponse.status).toBe(201)
+    expect(createUserReply.status).toBe(201)
   })
 
   it('should not be possible to create a new user with wrong data', async () => {
-    const createUserWithoutNameResponse = await request(app.server)
+    const createUserWithoutNameReply = await request(app.server)
       .post('/users')
       .send({
         email: 'johndoe@example.com',
       })
 
-    const createUserWithoutEmailResponse = await request(app.server)
+    const createUserWithoutEmailReply = await request(app.server)
       .post('/users')
       .send({
         name: 'John Doe',
       })
 
-    const createUserWithInvalidNameResponse = await request(app.server)
+    const createUserWithInvalidNameReply = await request(app.server)
       .post('/users')
       .send({
         name: 12345,
         email: 'johndoe@example.com',
       })
 
-    const createUserWithInvalidEmailResponse = await request(app.server)
+    const createUserWithInvalidEmailReply = await request(app.server)
       .post('/users')
       .send({
         name: 'John Doe',
         email: 'johndoeexample.com',
       })
 
-    expect(createUserWithoutNameResponse.status).toBe(400)
-    expect(createUserWithoutEmailResponse.status).toBe(400)
-    expect(createUserWithInvalidNameResponse.status).toBe(400)
-    expect(createUserWithInvalidEmailResponse.status).toBe(400)
+    expect(createUserWithoutNameReply.status).toBe(400)
+    expect(createUserWithoutEmailReply.status).toBe(400)
+    expect(createUserWithInvalidNameReply.status).toBe(400)
+    expect(createUserWithInvalidEmailReply.status).toBe(400)
   })
 
   it('should not be possible to create multiple users with same email', async () => {
@@ -69,30 +69,30 @@ describe('User routes', () => {
       email,
     })
 
-    const createSecondUserResponse = await request(app.server)
+    const createSecondUserReply = await request(app.server)
       .post('/users')
       .send({
         name: 'Jane Doe',
         email,
       })
 
-    expect(createSecondUserResponse.status).toBe(400)
+    expect(createSecondUserReply.status).toBe(400)
   })
 
   it('should be possible to get a user by its session id', async () => {
-    const createUserResponse = await request(app.server).post('/users').send({
+    const createUserReply = await request(app.server).post('/users').send({
       name: 'John Doe',
       email: 'johndoe@example.com',
     })
 
-    const cookies = createUserResponse.get('Set-Cookie') ?? []
+    const cookies = createUserReply.get('Set-Cookie') ?? []
 
-    const getUserResponse = await request(app.server)
+    const getUserReply = await request(app.server)
       .get('/users/me')
       .set('Cookie', cookies)
       .send()
 
-    expect(getUserResponse.body.user).toEqual(
+    expect(getUserReply.body.user).toEqual(
       expect.objectContaining({
         id: expect.any(String),
         name: 'John Doe',
@@ -109,9 +109,9 @@ describe('User routes', () => {
       email: 'johndoe@example.com',
     })
 
-    const listUsersResponse = await request(app.server).get('/users').send()
+    const listUsersReply = await request(app.server).get('/users').send()
 
-    expect(listUsersResponse.body.users).toEqual([
+    expect(listUsersReply.body.users).toEqual([
       expect.objectContaining({
         id: expect.any(String),
         name: 'John Doe',

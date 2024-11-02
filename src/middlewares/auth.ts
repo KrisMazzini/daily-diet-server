@@ -1,11 +1,11 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { getUserBySessionId } from '../utils/getUserBySessionId'
 
-export async function auth(request: FastifyRequest, response: FastifyReply) {
+export async function auth(request: FastifyRequest, reply: FastifyReply) {
   const sessionId = request.cookies.sessionId
 
   if (!sessionId) {
-    return response.status(401).send({
+    return reply.status(401).send({
       error: 'Unauthorized.',
     })
   }
@@ -14,14 +14,14 @@ export async function auth(request: FastifyRequest, response: FastifyReply) {
     const { user } = await getUserBySessionId({ sessionId })
 
     if (!user) {
-      return response.status(401).send({
+      return reply.status(401).send({
         error: 'Unauthorized.',
       })
     }
 
     request.user = user
   } catch {
-    return response.status(500).send({
+    return reply.status(500).send({
       error: 'Internal Server Error.',
     })
   }

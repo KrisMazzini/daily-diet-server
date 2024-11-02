@@ -16,7 +16,7 @@ export function mealRoutes(app: FastifyInstance) {
     return { meals }
   })
 
-  app.get('/:id', { preHandler: [auth] }, async (request, response) => {
+  app.get('/:id', { preHandler: [auth] }, async (request, reply) => {
     const getMealParamsSchema = z.object({
       id: z.string().uuid(),
     })
@@ -26,7 +26,7 @@ export function mealRoutes(app: FastifyInstance) {
     )
 
     if (!success) {
-      return response.status(400).send({ error: 'Invalid params.' })
+      return reply.status(400).send({ error: 'Invalid params.' })
     }
 
     const { id } = params
@@ -43,7 +43,7 @@ export function mealRoutes(app: FastifyInstance) {
     return meal ? { meal } : { meal: null }
   })
 
-  app.post('/', { preHandler: [auth] }, async (request, response) => {
+  app.post('/', { preHandler: [auth] }, async (request, reply) => {
     const createMealSchema = z.object({
       name: z.string().trim().min(1),
       description: z.string().trim().min(1),
@@ -54,7 +54,7 @@ export function mealRoutes(app: FastifyInstance) {
     const { success, data: body } = createMealSchema.safeParse(request.body)
 
     if (!success) {
-      return response.status(400).send({ message: 'Invalid body.' })
+      return reply.status(400).send({ message: 'Invalid body.' })
     }
 
     const { name, description, date, partOfDiet } = body
@@ -70,10 +70,10 @@ export function mealRoutes(app: FastifyInstance) {
       user_id: userId,
     })
 
-    response.status(201).send()
+    reply.status(201).send()
   })
 
-  app.delete('/:id', { preHandler: [auth] }, async (request, response) => {
+  app.delete('/:id', { preHandler: [auth] }, async (request, reply) => {
     const deleteMealParamsSchema = z.object({
       id: z.string().uuid(),
     })
@@ -83,7 +83,7 @@ export function mealRoutes(app: FastifyInstance) {
     )
 
     if (!success) {
-      return response.status(400).send({ message: 'Invalid params.' })
+      return reply.status(400).send({ message: 'Invalid params.' })
     }
 
     const { id } = params
@@ -91,13 +91,13 @@ export function mealRoutes(app: FastifyInstance) {
     const meal = await knex('meals').where({ id })
 
     if (!meal) {
-      return response.status(404).send({ message: 'Could not find meal.' })
+      return reply.status(404).send({ message: 'Could not find meal.' })
     }
 
     await knex('meals').delete().where({
       id,
     })
 
-    return response.status(200).send()
+    return reply.status(200).send()
   })
 }

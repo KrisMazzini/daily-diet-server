@@ -18,7 +18,7 @@ export async function userRoutes(app: FastifyInstance) {
     return { user }
   })
 
-  app.post('/', async (request, response) => {
+  app.post('/', async (request, reply) => {
     const createUserSchema = z.object({
       name: z.string().trim().min(1),
       email: z.string().email(),
@@ -27,7 +27,7 @@ export async function userRoutes(app: FastifyInstance) {
     const { success, data: body } = createUserSchema.safeParse(request.body)
 
     if (!success) {
-      return response.status(400).send({ message: 'Invalid body.' })
+      return reply.status(400).send({ message: 'Invalid body.' })
     }
 
     const { name, email } = body
@@ -35,12 +35,12 @@ export async function userRoutes(app: FastifyInstance) {
     const existingUser = await knex('users').where({ email }).first()
 
     if (existingUser) {
-      return response.status(400).send({ message: 'E-mail already exists.' })
+      return reply.status(400).send({ message: 'E-mail already exists.' })
     }
 
     const sessionId = randomUUID()
 
-    response.cookie('sessionId', sessionId, {
+    reply.cookie('sessionId', sessionId, {
       path: '/',
       maxAge: 60 * 60 * 24 * 7, // 7 days
     })
@@ -52,6 +52,6 @@ export async function userRoutes(app: FastifyInstance) {
       session_id: sessionId,
     })
 
-    return response.status(201).send()
+    return reply.status(201).send()
   })
 }
