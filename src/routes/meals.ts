@@ -40,7 +40,7 @@ export function mealRoutes(app: FastifyInstance) {
       })
       .first()
 
-    return { meal }
+    return meal ? { meal } : { meal: null }
   })
 
   app.post('/', { preHandler: [auth] }, async (request, response) => {

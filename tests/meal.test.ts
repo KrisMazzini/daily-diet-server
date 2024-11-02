@@ -147,6 +147,6 @@ describe('Meal routes', () => {
       .set('Cookie', cookies)
 
     expect(deleteMealResponse.status).toBe(200)
-    expect(getMealResponse.body).toEqual({})
+    expect(getMealResponse.body.meal).toBe(null)
   })
 })
