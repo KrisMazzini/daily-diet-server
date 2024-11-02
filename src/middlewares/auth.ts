@@ -1,5 +1,6 @@
 import { FastifyReply, FastifyRequest } from 'fastify'
-import { getUserBySessionId } from '../utils/getUserBySessionId'
+
+import { knex } from '../database'
 
 export async function auth(request: FastifyRequest, reply: FastifyReply) {
   const sessionId = request.cookies.sessionId
@@ -11,7 +12,7 @@ export async function auth(request: FastifyRequest, reply: FastifyReply) {
   }
 
   try {
-    const { user } = await getUserBySessionId({ sessionId })
+    const user = await knex('users').where({ session_id: sessionId }).first()
 
     if (!user) {
       return reply.status(401).send({
