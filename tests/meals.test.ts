@@ -245,4 +245,79 @@ describe('Meal routes', () => {
     expect(getMetricsReply.body.not_part_of_diet_amount).toBe(2)
     expect(getMetricsReply.body.best_streak).toBe(2)
   })
+
+  it('should not be possible for a user to have access to other user meals', async () => {
+    const createFirstUserResponse = await request(app.server)
+      .post('/users')
+      .send({
+        name: 'John Doe',
+        email: 'johndoe@example.com',
+      })
+
+    const firstUserCookies = createFirstUserResponse.get('Set-Cookie') ?? []
+
+    await request(app.server)
+      .post('/meals')
+      .set('Cookie', firstUserCookies)
+      .send({
+        name: 'Lunch',
+        description: 'Rice, beans and beef',
+        partOfDiet: true,
+        date: '2024-12-01T12:00:00.000Z',
+      })
+
+    const listFirstUserMealsReply = await request(app.server)
+      .get('/meals')
+      .set('Cookie', firstUserCookies)
+
+    const mealId = listFirstUserMealsReply.body.meals[0].id
+
+    const createSecondUserResponse = await request(app.server)
+      .post('/users')
+      .send({
+        name: 'Jane Doe',
+        email: 'janedoe@example.com',
+      })
+
+    const secondUserCookies = createSecondUserResponse.get('Set-Cookie') ?? []
+
+    const listSecondUserMealsReply = await request(app.server)
+      .get('/meals')
+      .set('Cookie', secondUserCookies)
+      .expect(200)
+
+    expect(listSecondUserMealsReply.body.meals).toHaveLength(0)
+
+    const getSecondUserMealReply = await request(app.server)
+      .get(`/meals/${mealId}`)
+      .set('Cookie', secondUserCookies)
+      .expect(200)
+
+    expect(getSecondUserMealReply.body.meal).toBe(null)
+
+    const secondUserMetricsResponse = await request(app.server)
+      .get('/meals/metrics')
+      .set('Cookie', secondUserCookies)
+
+    expect(secondUserMetricsResponse.body.total_amount).toBe(0)
+    expect(secondUserMetricsResponse.body.part_of_diet_amount).toBe(0)
+    expect(secondUserMetricsResponse.body.not_part_of_diet_amount).toBe(0)
+    expect(secondUserMetricsResponse.body.best_streak).toBe(0)
+
+    await request(app.server)
+      .delete(`/meals/${mealId}`)
+      .set('Cookie', secondUserCookies)
+      .expect(404)
+
+    await request(app.server)
+      .put(`/meals/${mealId}`)
+      .set('Cookie', secondUserCookies)
+      .send({
+        name: 'Lunch',
+        description: 'Rice, beans and beef',
+        partOfDiet: true,
+        date: '2024-12-01T12:00:00.000Z',
+      })
+      .expect(404)
+  })
 })
