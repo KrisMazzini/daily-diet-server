@@ -123,8 +123,9 @@ export function mealRoutes(app: FastifyInstance) {
     }
 
     const { id } = params
+    const userId = request.user?.id
 
-    const meal = await knex('meals').where({ id })
+    const meal = await knex('meals').where({ user_id: userId, id })
 
     if (!meal) {
       return reply.status(404).send({ message: 'Could not find meal.' })
