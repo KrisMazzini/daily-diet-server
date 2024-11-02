@@ -72,4 +72,32 @@ export function mealRoutes(app: FastifyInstance) {
 
     response.status(201).send()
   })
+
+  app.delete('/:id', { preHandler: [auth] }, async (request, response) => {
+    const deleteMealParamsSchema = z.object({
+      id: z.string().uuid(),
+    })
+
+    const { success, data: params } = deleteMealParamsSchema.safeParse(
+      request.params,
+    )
+
+    if (!success) {
+      return response.status(400).send({ message: 'Invalid params.' })
+    }
+
+    const { id } = params
+
+    const meal = await knex('meals').where({ id })
+
+    if (!meal) {
+      return response.status(404).send({ message: 'Could not find meal.' })
+    }
+
+    await knex('meals').delete().where({
+      id,
+    })
+
+    return response.status(200).send()
+  })
 }
