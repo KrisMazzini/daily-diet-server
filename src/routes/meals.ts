@@ -43,6 +43,42 @@ export function mealRoutes(app: FastifyInstance) {
     return meal ? { meal } : { meal: null }
   })
 
+  app.get('/metrics', { preHandler: [auth] }, async (request, reply) => {
+    const userId = request.user?.id
+
+    const meals = await knex('meals')
+      .where({
+        user_id: userId,
+      })
+      .orderBy('date', 'asc')
+
+    const totalAmout = meals.length
+    const partOfDietAmount = meals.filter((meal) => meal.part_of_diet).length
+    const notPartOfDietAmount = meals.filter(
+      (meal) => !meal.part_of_diet,
+    ).length
+
+    const { bestStreak } = meals.reduce(
+      ({ currentStreak, bestStreak }, meal) => {
+        currentStreak = meal.part_of_diet ? currentStreak + 1 : 0
+        bestStreak = Math.max(currentStreak, bestStreak)
+
+        return { currentStreak, bestStreak }
+      },
+      {
+        currentStreak: 0,
+        bestStreak: 0,
+      },
+    )
+
+    return reply.status(200).send({
+      total_amount: totalAmout,
+      part_of_diet_amount: partOfDietAmount,
+      not_part_of_diet_amount: notPartOfDietAmount,
+      best_streak: bestStreak,
+    })
+  })
+
   app.post('/', { preHandler: [auth] }, async (request, reply) => {
     const createMealSchema = z.object({
       name: z.string().trim().min(1),

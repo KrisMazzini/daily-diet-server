@@ -149,4 +149,57 @@ describe('Meal routes', () => {
     expect(deleteMealReply.status).toBe(200)
     expect(getMealReply.body.meal).toBe(null)
   })
+
+  it('should be possible to get user metrics', async () => {
+    const createUserReply = await request(app.server).post('/users').send({
+      name: 'John Doe',
+      email: 'johndoe@example.com',
+    })
+
+    const cookies = createUserReply.get('Set-Cookie') ?? []
+
+    await request(app.server).post('/meals').set('Cookie', cookies).send({
+      name: 'Breakfast',
+      description: 'Scrambled eggs',
+      partOfDiet: true,
+      date: '2024-11-02T08:00:00.000Z',
+    })
+
+    await request(app.server).post('/meals').set('Cookie', cookies).send({
+      name: 'Lunch',
+      description: 'Lasagna',
+      partOfDiet: false,
+      date: '2024-11-02T12:00:00.000Z',
+    })
+
+    await request(app.server).post('/meals').set('Cookie', cookies).send({
+      name: 'Dinner',
+      description: 'Rice, beans and beef',
+      partOfDiet: true,
+      date: '2024-11-02T18:00:00.000Z',
+    })
+
+    await request(app.server).post('/meals').set('Cookie', cookies).send({
+      name: 'Breakfast',
+      description: 'Banana with oatmeal',
+      partOfDiet: true,
+      date: '2024-11-03T08:00:00.000Z',
+    })
+
+    await request(app.server).post('/meals').set('Cookie', cookies).send({
+      name: 'Lunch',
+      description: 'Barbecue',
+      partOfDiet: false,
+      date: '2024-11-03T12:00:00.000Z',
+    })
+
+    const getMetricsReply = await request(app.server)
+      .get('/meals/metrics')
+      .set('Cookie', cookies)
+
+    expect(getMetricsReply.body.total_amount).toBe(5)
+    expect(getMetricsReply.body.part_of_diet_amount).toBe(3)
+    expect(getMetricsReply.body.not_part_of_diet_amount).toBe(2)
+    expect(getMetricsReply.body.best_streak).toBe(2)
+  })
 })
